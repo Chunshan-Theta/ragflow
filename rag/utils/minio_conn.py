@@ -8,48 +8,11 @@ from rag.utils import singleton
 import requests
 from requests.auth import HTTPBasicAuth
 
-class MinioAdminAPI(object):
-    def __init__(self, host, access_key, secret_key):
-        self._headers = {
-            'Content-Type': 'application/json'
-        }
-        self._endpoint = f"http://{host}/minio/admin/v3/"
-        self._access_key = access_key
-        self._secret_key = secret_key
-
-    # Set the quota using the Admin API
-    def set_bucket_quota(self, bucket_name, quota_size):
-        url = f"{self._endpoint}set-bucket-quota?bucket={bucket_name}"
-        payload = {
-            "quota": {
-                "hard": f"{quota_size}"
-            }
-        }
-        response = requests.post(
-            url,
-            json=payload,
-            headers=self._headers,
-            auth=HTTPBasicAuth(self._access_key, self.secret_key)
-        )
-        
-        if response.status_code == 200:
-            minio_logger.info(f"Quota of {quota_size} set for bucket '{bucket_name}'.")
-        else:
-            minio_logger.error(f"Failed to set quota: {response.text}")
-
-
-
-
 
 @singleton
 class RAGFlowMinio(object):
     def __init__(self):
         self.conn = None
-        self.minioAdminApi = MinioAdminAPI(
-            settings.MINIO["host"],
-            access_key=settings.MINIO["user"],
-            secret_key=settings.MINIO["password"],
-        )
         self.__open__()
 
     def __open__(self):
@@ -72,11 +35,7 @@ class RAGFlowMinio(object):
     def __close__(self):
         del self.conn
         self.conn = None
-    @classmethod
-    def _create_bucket(cls, bucket):
-        if not cls.conn.bucket_exists(bucket):
-            cls.conn.make_bucket(bucket)
-            self.minioAdminApi.set_bucket_quota(bucket, "1GB")
+
 
 
     def health(self):
