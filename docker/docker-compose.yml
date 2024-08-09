@@ -25,6 +25,7 @@ services:
       - TZ=${TIMEZONE}
       - HF_ENDPOINT=https://huggingface.co
       - MACOS=${MACOS}
+      - MAX_CONTENT_LENGTH=1000000000
     networks:
       - ragflow
     restart: always
